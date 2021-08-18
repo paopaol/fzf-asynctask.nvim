@@ -57,6 +57,9 @@ M.async_task = function()
     opts.actions['default'] = function(selected)
       vim.cmd(string.format('AsyncTask %s', selected[1]))
     end
+    opts.actions['ctrl-e'] = function(selected)
+      vim.cmd(string.format('AsyncTaskEdit %s', task_file))
+    end
 
     if not opts.preview then
       local preview_opts = config.globals.previewers[opts.previewer]
