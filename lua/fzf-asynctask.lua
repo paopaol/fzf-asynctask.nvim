@@ -18,9 +18,22 @@ local function get_async_tasks(task_file)
   return tasks
 end
 
+local function file_exists(path)
+  local file = io.open(path, "rb")
+  if file then file:close() end
+  return file ~= nil
+end
+
 M.async_task = function()
   coroutine.wrap(function()
-    local tasks = get_async_tasks('/tmp/2/.tasks')
+    local task_file = vim.call('asyncrun#get_root', '%') .. '/.tasks'
+
+    if not file_exists(task_file) then
+      print("not found tasks in this project")
+      return
+    end
+
+    local tasks = get_async_tasks(task_file)
 
     local items = {}
     for _, task in pairs(tasks) do
@@ -33,13 +46,17 @@ M.async_task = function()
     local act = helpers.choices_to_shell_cmd_previewer(function(selected)
       return string.format(
                  'bat --style=numbers,changes --color always -l ini -H %d %s',
-                 items[selected[1]].lnum, '/tmp/2/.tasks')
+                 items[selected[1]].lnum, task_file)
 
     end)
 
     local opts = config.normalize_opts({}, config.globals.files)
     opts.prompt = 'Taskes❯ '
     opts.preview = act
+    opts.actions = {}
+    opts.actions['default'] = function(selected)
+      vim.cmd(string.format('AsyncTask %s', selected[1]))
+    end
 
     if not opts.preview then
       local preview_opts = config.globals.previewers[opts.previewer]
