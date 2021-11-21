@@ -55,10 +55,14 @@ M.async_task = function()
     opts.preview = act
     opts.actions = {}
     opts.actions['default'] = function(selected)
-      vim.cmd(string.format('AsyncTask %s', selected[1]))
+      if selected[1] == "" then
+        vim.cmd(string.format('AsyncTask %s', selected[2]))
+      else
+        vim.cmd(string.format('AsyncTask %s', selected[1]))
+      end
     end
     opts.actions['ctrl-e'] = function(selected)
-      vim.cmd(string.format('AsyncTaskEdit %s', task_file))
+      vim.cmd(string.format('tabnew %s', task_file))
     end
 
     if not opts.preview then
@@ -69,8 +73,7 @@ M.async_task = function()
       end
     end
 
-    local selected = core.fzf(opts, items, core.build_fzf_cli(opts),
-                              config.winopts(opts))
+    local selected = core.fzf(opts, items, core.build_fzf_cli(opts), config.globals.winopts)
 
     actions.act(opts.actions, selected)
 
